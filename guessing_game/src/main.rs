@@ -334,3 +334,89 @@ fn main() {
         println!("Convex Polygon {}: {:?}", i + 1, convex_polygon);
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use geo::{polygon, LineString};
+
+    #[test]
+    fn test_simple_square_polygon() {
+        let coords = vec![
+            (0.0, 0.0),
+            (4.0, 0.0),
+            (4.0, 4.0),
+            (0.0, 4.0),
+            (0.0, 0.0),
+        ];
+        let polygon = Polygon::new(LineString::from(coords), vec![]);
+        let result = hertel_mehlhorn(&polygon);
+
+        assert_eq!(result.len(), 1); // A square is already convex
+    }
+
+    #[test]
+    fn test_concave_polygon() {
+        let coords = vec![
+            (0.0, 0.0),
+            (4.0, 0.0),
+            (4.0, 4.0),
+            (2.0, 2.0), // Concave point
+            (0.0, 4.0),
+            (0.0, 0.0),
+        ];
+        let polygon = Polygon::new(LineString::from(coords), vec![]);
+        let result = hertel_mehlhorn(&polygon);
+
+        assert!(result.len() > 1); // Should split into multiple convex polygons
+    }
+
+    #[test]
+    fn test_triangle_polygon() {
+        let coords = vec![
+            (0.0, 0.0),
+            (4.0, 0.0),
+            (2.0, 4.0),
+            (0.0, 0.0),
+        ];
+        let polygon = Polygon::new(LineString::from(coords), vec![]);
+        let result = hertel_mehlhorn(&polygon);
+
+        assert_eq!(result.len(), 1); // A triangle is already convex
+    }
+
+    #[test]
+    fn test_shared_edge_detection() {
+        let triangles = vec![
+            polygon![(x: 0.0, y: 0.0), (x: 1.0, y: 1.0), (x: 2.0, y: 0.0)],
+            polygon![(x: 1.0, y: 1.0), (x: 2.0, y: 0.0), (x: 2.0, y: 2.0)],
+        ];
+        let shared_edges = find_shared_edges(&triangles);
+
+        assert_eq!(shared_edges.len(), 1); // One shared edge exists
+    }
+
+    #[test]
+    fn test_convexity_check() {
+        let coords_convex = vec![
+            (0.0, 0.0),
+            (4.0, 0.0),
+            (4.0, 4.0),
+            (0.0, 4.0),
+            (0.0, 0.0),
+        ];
+        let polygon_convex = Polygon::new(LineString::from(coords_convex), vec![]);
+        assert!(is_polygon_convex(&polygon_convex));
+
+        let coords_concave = vec![
+            (0.0, 0.0),
+            (4.0, 0.0),
+            (4.0, 4.0),
+            (2.0, 2.0), // Concave point
+            (0.0, 4.0),
+            (0.0, 0.0),
+        ];
+        let polygon_concave = Polygon::new(LineString::from(coords_concave), vec![]);
+        assert!(!is_polygon_convex(&polygon_concave));
+    }
+}
