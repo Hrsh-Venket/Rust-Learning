@@ -1,0 +1,9 @@
+[package]
+name = "guessing_game"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+geo = "0.27"
+earcutr = "0.2"
+ordered-float = "3.0"
